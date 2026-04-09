@@ -14,6 +14,12 @@ Klein project met een MySQL/MariaDB database op basis van de meegeleverde ERD.
 3. Voer `database.sql` uit.
 4. Voer daarna `data.sql` uit.
 
+## App runnen (XAMPP)
+
+- Zet **Apache** aan in XAMPP.
+- Open de startpagina:
+  - `http://localhost/Realisatie/public/`
+
 ## Snelle test queries
 
 Advertenties met boek + eigenaar:
