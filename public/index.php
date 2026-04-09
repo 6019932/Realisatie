@@ -29,6 +29,7 @@ $user = current_user();
             <li><a href="profile.php">Profiel bekijken</a></li>
             <li><a href="profile_edit.php">Profiel bewerken</a></li>
             <li><a href="books.php">Boeken</a></li>
+            <li><a href="ads.php">Advertenties</a></li>
             <li><a href="logout.php">Uitloggen</a></li>
         </ul>
     <?php endif; ?>
