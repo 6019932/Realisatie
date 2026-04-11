@@ -7,13 +7,28 @@ namespace App;
 use InvalidArgumentException;
 use PDO;
 
-final class Advertisement
+final class Advertentie
 {
     private PDO $pdo;
 
     public function __construct(Database $db)
     {
         $this->pdo = $db->pdo();
+    }
+
+    public function plaatsen(int $boekId, int $gebruikerId, string $status = 'actief'): int
+    {
+        return $this->createAd($boekId, $gebruikerId, $status);
+    }
+
+    public function bewerken(int $adId, int $gebruikerId, string $status): bool
+    {
+        return $this->updateAdStatus($adId, $gebruikerId, $status);
+    }
+
+    public function verwijderen(int $adId, int $gebruikerId): bool
+    {
+        return $this->deleteAd($adId, $gebruikerId);
     }
 
     public function createAd(int $boekId, int $gebruikerId, string $status = 'actief'): int
@@ -28,7 +43,6 @@ final class Advertisement
             throw new InvalidArgumentException('Ongeldige status.');
         }
 
-        // Alleen eigenaar mag een advertentie plaatsen voor zijn boek.
         $stmt = $this->pdo->prepare('SELECT eigenaar_id FROM boek WHERE id = :id');
         $stmt->execute([':id' => $boekId]);
         $row = $stmt->fetch();
@@ -45,7 +59,7 @@ final class Advertisement
             ':gebruiker_id' => $gebruikerId,
         ]);
 
-        return (int) $this->pdo->lastInsertId();
+        return (int)$this->pdo->lastInsertId();
     }
 
     /**
@@ -75,9 +89,7 @@ final class Advertisement
              ORDER BY a.id DESC'
         );
 
-        /** @var array $rows */
-        $rows = $stmt->fetchAll();
-        return $rows;
+        return $stmt->fetchAll();
     }
 
     /**
@@ -118,7 +130,6 @@ final class Advertisement
 
     public function deleteAd(int $adId, int $gebruikerId): bool
     {
-        // Soft-delete: status wordt "verwijderd"
         return $this->updateAdStatus($adId, $gebruikerId, 'verwijderd');
     }
 
@@ -139,4 +150,3 @@ final class Advertisement
         return $stmt->fetchAll();
     }
 }
-

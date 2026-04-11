@@ -7,13 +7,29 @@ namespace App;
 use InvalidArgumentException;
 use PDO;
 
-final class Book
+final class Boek
 {
     private PDO $pdo;
 
     public function __construct(Database $db)
     {
         $this->pdo = $db->pdo();
+    }
+
+    /**
+     * @param array{titel:string,auteur:string,conditie:string,prijs:mixed,categorie:string,locatie:string} $data
+     */
+    public function toevoegen(array $data, int $eigenaarId): int
+    {
+        return $this->createBook($data, $eigenaarId);
+    }
+
+    /**
+     * @param array{titel?:string,auteur?:string,conditie?:string,prijs?:mixed,categorie?:string,locatie?:string} $fields
+     */
+    public function bewerken(int $id, int $eigenaarId, array $fields): bool
+    {
+        return $this->updateBook($id, $eigenaarId, $fields);
     }
 
     /**
@@ -37,7 +53,7 @@ final class Book
         if (!is_numeric($prijsRaw)) {
             throw new InvalidArgumentException('Prijs moet een getal zijn.');
         }
-        $prijs = (float) $prijsRaw;
+        $prijs = (float)$prijsRaw;
         if ($prijs < 0) {
             throw new InvalidArgumentException('Prijs moet positief zijn.');
         }
@@ -56,7 +72,7 @@ final class Book
             ':eigenaar_id' => $eigenaarId,
         ]);
 
-        return (int) $this->pdo->lastInsertId();
+        return (int)$this->pdo->lastInsertId();
     }
 
     /**
@@ -103,9 +119,7 @@ final class Book
              ORDER BY b.id DESC'
         );
 
-        /** @var array $rows */
-        $rows = $stmt->fetchAll();
-        return $rows;
+        return $stmt->fetchAll();
     }
 
     /**
@@ -122,7 +136,7 @@ final class Book
         $params = [':id' => $id, ':eigenaar_id' => $eigenaarId];
 
         if (array_key_exists('titel', $fields)) {
-            $titel = trim((string) $fields['titel']);
+            $titel = trim((string)$fields['titel']);
             if ($titel === '') {
                 throw new InvalidArgumentException('Titel is verplicht.');
             }
@@ -131,7 +145,7 @@ final class Book
         }
 
         if (array_key_exists('auteur', $fields)) {
-            $auteur = trim((string) $fields['auteur']);
+            $auteur = trim((string)$fields['auteur']);
             if ($auteur === '') {
                 throw new InvalidArgumentException('Auteur is verplicht.');
             }
@@ -140,7 +154,7 @@ final class Book
         }
 
         if (array_key_exists('conditie', $fields)) {
-            $conditie = trim((string) $fields['conditie']);
+            $conditie = trim((string)$fields['conditie']);
             if (!in_array($conditie, ['nieuw', 'goed', 'gebruikt'], true)) {
                 throw new InvalidArgumentException('Ongeldige conditie.');
             }
@@ -153,7 +167,7 @@ final class Book
             if (!is_numeric($prijsRaw)) {
                 throw new InvalidArgumentException('Prijs moet een getal zijn.');
             }
-            $prijs = (float) $prijsRaw;
+            $prijs = (float)$prijsRaw;
             if ($prijs < 0) {
                 throw new InvalidArgumentException('Prijs moet positief zijn.');
             }
@@ -162,7 +176,7 @@ final class Book
         }
 
         if (array_key_exists('categorie', $fields)) {
-            $categorie = trim((string) $fields['categorie']);
+            $categorie = trim((string)$fields['categorie']);
             if ($categorie === '') {
                 throw new InvalidArgumentException('Categorie is verplicht.');
             }
@@ -171,7 +185,7 @@ final class Book
         }
 
         if (array_key_exists('locatie', $fields)) {
-            $locatie = trim((string) $fields['locatie']);
+            $locatie = trim((string)$fields['locatie']);
             if ($locatie === '') {
                 throw new InvalidArgumentException('Locatie is verplicht.');
             }
@@ -198,4 +212,3 @@ final class Book
         return $stmt->rowCount() > 0;
     }
 }
-

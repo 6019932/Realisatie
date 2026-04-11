@@ -8,13 +8,41 @@ use InvalidArgumentException;
 use PDO;
 use RuntimeException;
 
-final class User
+class Gebruiker
 {
-    private PDO $pdo;
+    protected PDO $pdo;
 
     public function __construct(Database $db)
     {
         $this->pdo = $db->pdo();
+    }
+
+    public function registreren(string $naam, string $email, string $password, string $rol = 'student'): int
+    {
+        return $this->createUser($naam, $email, $password, $rol);
+    }
+
+    public function inloggen(string $email, string $password): ?array
+    {
+        return $this->authenticate($email, $password);
+    }
+
+    /**
+     * @param array{naam?:string,email?:string,password?:string,rol?:string} $fields
+     */
+    public function profielBewerken(int $id, array $fields): bool
+    {
+        return $this->updateUser($id, $fields);
+    }
+
+    public function wachtwoordHerstellen(string $email, string $newPassword): bool
+    {
+        $user = $this->getUserByEmail($email);
+        if ($user === null) {
+            return false;
+        }
+
+        return $this->updateUser((int)$user['id'], ['password' => $newPassword]);
     }
 
     public function createUser(string $naam, string $email, string $password, string $rol = 'student'): int
@@ -48,7 +76,7 @@ final class User
             ':rol' => $rol,
         ]);
 
-        return (int) $this->pdo->lastInsertId();
+        return (int)$this->pdo->lastInsertId();
     }
 
     /**
@@ -84,7 +112,7 @@ final class User
         $params = [':id' => $id];
 
         if (array_key_exists('naam', $fields)) {
-            $naam = trim((string) $fields['naam']);
+            $naam = trim((string)$fields['naam']);
             if ($naam === '') {
                 throw new InvalidArgumentException('Naam mag niet leeg zijn.');
             }
@@ -93,7 +121,7 @@ final class User
         }
 
         if (array_key_exists('email', $fields)) {
-            $email = trim((string) $fields['email']);
+            $email = trim((string)$fields['email']);
             if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
                 throw new InvalidArgumentException('Ongeldig e-mailadres.');
             }
@@ -102,7 +130,7 @@ final class User
         }
 
         if (array_key_exists('rol', $fields)) {
-            $rol = (string) $fields['rol'];
+            $rol = (string)$fields['rol'];
             if (!in_array($rol, ['student', 'beheerder'], true)) {
                 throw new InvalidArgumentException('Ongeldige rol.');
             }
@@ -111,7 +139,7 @@ final class User
         }
 
         if (array_key_exists('password', $fields)) {
-            $password = (string) $fields['password'];
+            $password = (string)$fields['password'];
             if ($password === '') {
                 throw new InvalidArgumentException('Wachtwoord mag niet leeg zijn.');
             }
@@ -157,11 +185,10 @@ final class User
         }
 
         return [
-            'id' => (int) $user['id'],
-            'naam' => (string) $user['naam'],
-            'email' => (string) $user['email'],
-            'rol' => (string) $user['rol'],
+            'id' => (int)$user['id'],
+            'naam' => (string)$user['naam'],
+            'email' => (string)$user['email'],
+            'rol' => (string)$user['rol'],
         ];
     }
 }
-
